@@ -3,6 +3,7 @@ import axiosInstance from "../api/axiosInstance";
 import {toast} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Header from "./Header";
+import { useNavigate } from "react-router-dom";
 
 const BookingForm = () => {
   const [selectedDate, setSelectedDate] = useState(
@@ -12,10 +13,15 @@ const BookingForm = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [seats, setSeats] = useState([]);
+  const navigate = useNavigate()
 
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
+    const userData = localStorage.getItem("userData");
+    if (userData === null) {
+      navigate("/login");
+    }
     const fetchSeats = async () => {
       try {
         const response = await axiosInstance.get(
@@ -30,7 +36,7 @@ const BookingForm = () => {
     if (selectedDate) {
       fetchSeats();
     }
-  }, [selectedDate]);
+  }, [selectedDate,navigate]);
 
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
@@ -48,7 +54,7 @@ const BookingForm = () => {
   };
 
   const handleBook = async () => {
-    if (!name || !phoneNumber || phoneNumber.length !==10 ) {
+    if (!name || !phoneNumber || phoneNumber.length !== 10) {
       toast.error("Please fill in your name and 10 digit phonenumber!");
       return;
     }
@@ -136,7 +142,6 @@ const BookingForm = () => {
                 onChange={(e) => setName(e.target.value)}
                 className="border rounded-md px-3 py-2 w-full"
                 min={today}
-                
               />
             </div>
             <div className="mb-4">
