@@ -12,6 +12,7 @@ function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // checking if the user data present in the localstorage then navigate home page
   useEffect(() => {
     const userData = localStorage.getItem("userData");
     if (userData !== null) {
@@ -19,6 +20,7 @@ function Login() {
     }
   }, [navigate]);
 
+  // handling the emial if email sent succussfully then set state isOTp sent to true for show otp entering interface
   const handleEmailForm = async (event) => {
     event.preventDefault();
     try {
@@ -37,6 +39,7 @@ function Login() {
     }
   };
 
+  // handling the entering otp checking it is a number if number then focusing on next array element
   const handleOtpChange = (element, index) => {
     if (isNaN(element.value)) return false;
     setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
@@ -47,6 +50,7 @@ function Login() {
     }
   };
 
+  // if entered otp is correct in backend session then it will login to homepage
   const handleOtpForm = async (event) => {
     event.preventDefault();
     const enteredOtp = otp.join("");
@@ -54,7 +58,6 @@ function Login() {
       const response = await axiosInstance.post("/accounts/otp-verification/", {
         otp: enteredOtp,
       });
-      // const {access_token,refresh_token,username,email,id} = response.data
 
       const userData = response.data;
       dispatch(setUser(userData));

@@ -5,10 +5,11 @@ import {useNavigate} from "react-router-dom";
 
 const Header = () => {
   const user = useSelector((state) => state.user);
-  console.log(user.user);
+  console.log('user',user);
+  console.log('user.user',user.user)
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  // logout the user with clearing UserData from localstorage and navigate to login
   const handleLogout = () => {
     dispatch(clearUser());
     navigate("/login"); // Adjust the path to your login route

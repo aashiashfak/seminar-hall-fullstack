@@ -8,13 +8,11 @@ import Login from "./pages/Login";
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<BookingForm />} />
         </Routes>
         <ToastContainer />
-      </div>
     </Router>
   );
 }

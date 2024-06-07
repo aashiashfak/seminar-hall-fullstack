@@ -3,25 +3,27 @@ import axiosInstance from "../api/axiosInstance";
 import {toast} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Header from "./Header";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 const BookingForm = () => {
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const today = new Date().toISOString().split("T")[0];
+  const [seats, setSeats] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(today);
+  //   console.log(new Date().toISOString().split('T')[0]);
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedSeat, setSelectedSeat] = useState(null);
-  const [seats, setSeats] = useState([]);
-  const navigate = useNavigate()
 
-  const today = new Date().toISOString().split("T")[0];
+  const navigate = useNavigate();
 
+  // checking the authuser in localstorage to prevent from login page and fetching api to list seats
   useEffect(() => {
+    console.log("Enter to useEffect");
     const userData = localStorage.getItem("userData");
     if (userData === null) {
       navigate("/login");
     }
+
     const fetchSeats = async () => {
       try {
         const response = await axiosInstance.get(
@@ -36,11 +38,13 @@ const BookingForm = () => {
     if (selectedDate) {
       fetchSeats();
     }
-  }, [selectedDate,navigate]);
+  }, [selectedDate, navigate]);
 
+  // handling selectedDate to fetch seats and seats data with selected date
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
 
+    // preventing user to select date before today
     if (selectedDate < today) {
       toast.error("Please select a date starting from today.");
       return;
@@ -49,10 +53,12 @@ const BookingForm = () => {
     setSelectedDate(selectedDate);
   };
 
+  // handling selected seats to identify the user to which seat and to get seatId for booking
   const handleSeatClick = (seatId) => {
     setSelectedSeat(seatId);
   };
 
+  // handle the booking with validation if validation corrects post userdata, date and seat to booking api
   const handleBook = async () => {
     if (!name || !phoneNumber || phoneNumber.length !== 10) {
       toast.error("Please fill in your name and 10 digit phonenumber!");
@@ -102,20 +108,20 @@ const BookingForm = () => {
           />
         </div>
         {selectedDate && (
-          <div className="container mx-auto p-2 md:max-w-screen-md md:p-4">
+          <div className="container mx-auto md:max-w-screen-md md:p-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
               Select Seat
             </label>
-            <div className="container mx-auto p-2 md:max-w-screen-md md:p-4 grid grid-cols-10 gap-4">
+            <div className="container mx-auto p-2 md:max-w-screen-md md:p-4 grid grid-cols-10 md:gap-4 sm:gap-1">
               {seats.map((seat) => (
                 <button
                   key={seat.id}
-                  className={`h-12 border rounded shadow-sm ${
+                  className={`h-12 border rounded shadow-sm sm:px-4 py-1 ${
                     seat.is_booked
                       ? "bg-red-500 cursor-not-allowed"
                       : "bg-green-500 "
                   } text-white ${
-                    selectedSeat === seat.id ? "bg-blue-700" : ""
+                    selectedSeat === seat.id ? "bg-blue-600" : ""
                   }`}
                   onClick={() => !seat.is_booked && handleSeatClick(seat.id)}
                   disabled={seat.is_booked}
@@ -142,6 +148,7 @@ const BookingForm = () => {
                 onChange={(e) => setName(e.target.value)}
                 className="border rounded-md px-3 py-2 w-full"
                 min={today}
+                placeholder="Enter your Name"
               />
             </div>
             <div className="mb-4">
@@ -157,6 +164,7 @@ const BookingForm = () => {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 className="border rounded-md px-3 py-2 w-full"
+                placeholder="Enter 10 digit phone-number"
               />
             </div>
             <button
