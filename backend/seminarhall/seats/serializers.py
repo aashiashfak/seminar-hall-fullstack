@@ -7,5 +7,5 @@ from .models import Seat, Booking, HallSettings
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = ['id', 'user', 'seat', 'booking_date']
+        fields = ['seat', 'booking_date', 'name', 'phone_number']
         read_only_fields = ['user']

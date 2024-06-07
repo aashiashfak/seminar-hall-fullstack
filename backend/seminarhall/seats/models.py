@@ -10,14 +10,23 @@ class HallSettings(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.update_seats()
-        
+    #   
     def update_seats(self):
         current_seat_count = Seat.objects.count()
+        print(f"Current seat count: {current_seat_count}")
+        
         if self.total_seats > current_seat_count:
             for i in range(current_seat_count + 1, self.total_seats + 1):
                 Seat.objects.create(number=i)
+                print(f"Created seat number: {i}")
         elif self.total_seats < current_seat_count:
-            Seat.objects.filter(number__gt=self.total_seats).delete()
+            seats_to_delete = Seat.objects.all()
+            for seat in seats_to_delete:
+                if (int(seat.number) >  self.total_seats) :
+                    print(seat.number)
+                    seat.delete()
+
+
 
     def __str__(self):
         return f'Total Seats: {self.total_seats}'
@@ -32,6 +41,8 @@ class Booking(models.Model):
     user = models.ForeignKey(User, related_name='bookings', on_delete=models.CASCADE)
     seat = models.ForeignKey(Seat, related_name='bookings', on_delete=models.CASCADE)
     booking_date = models.DateField()
+    name = models.CharField(max_length=255,default="")
+    phone_number = models.CharField(max_length=20 ,default="")
     booked_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
