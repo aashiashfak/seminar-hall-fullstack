@@ -1,18 +1,20 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useRef} from "react";
 import {useDispatch} from "react-redux";
 import {useNavigate} from "react-router-dom";
 import {setUser} from "../redux/userReducer";
 import axiosInstance from "../api/axiosInstance";
+import {ClipLoader} from "react-spinners";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false); 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const otpRefs = useRef([]);
 
-  // checking if the user data present in the localstorage then navigate home page
   useEffect(() => {
     const userData = localStorage.getItem("userData");
     if (userData !== null) {
@@ -20,9 +22,9 @@ function Login() {
     }
   }, [navigate]);
 
-  // handling the emial if email sent succussfully then set state isOTp sent to true for show otp entering interface
   const handleEmailForm = async (event) => {
     event.preventDefault();
+    setIsLoading(true); // Start loading
     try {
       const response = await axiosInstance.post("accounts/otp-request/", {
         email,
@@ -36,24 +38,54 @@ function Login() {
       } else {
         setMessage("An error occurred");
       }
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
-  // handling the entering otp checking it is a number if number then focusing on next array element
-  const handleOtpChange = (element, index) => {
-    if (isNaN(element.value)) return false;
-    setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
+  const handleOtpChange = (e, index) => {
+    const value = e.target.value;
+    if (!isNaN(value) && value !== "") {
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
 
-    // Focus on the next input
-    if (element.nextSibling) {
-      element.nextSibling.focus();
+      // Focus on the next input if available
+      if (index < otp.length - 1) {
+        otpRefs.current[index + 1].focus();
+      }
     }
   };
 
-  // if entered otp is correct in backend session then it will login to homepage
+  const handleOtpKeyDown = (e, index) => {
+    if (e.key === "Backspace") {
+      if (otp[index] === "" && index > 0) {
+        otpRefs.current[index - 1].focus();
+      } else {
+        const newOtp = [...otp];
+        newOtp[index] = "";
+        setOtp(newOtp);
+      }
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData("text").split("").slice(0, 6);
+    const newOtp = [...otp];
+    pasteData.forEach((char, idx) => {
+      if (!isNaN(char)) {
+        newOtp[idx] = char;
+      }
+    });
+    setOtp(newOtp);
+    otpRefs.current[pasteData.length - 1]?.focus();
+  };
+
   const handleOtpForm = async (event) => {
     event.preventDefault();
     const enteredOtp = otp.join("");
+    setIsLoading(true); // Start loading
     try {
       const response = await axiosInstance.post("/accounts/otp-verification/", {
         otp: enteredOtp,
@@ -69,6 +101,8 @@ function Login() {
       } else {
         setMessage("An error occurred");
       }
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -80,7 +114,11 @@ function Login() {
             Login
           </h2>
           <div className="p-4">
-            {!isOtpSent ? (
+            {isLoading ? (
+              <div className="flex justify-center items-center">
+                <ClipLoader size={50} color={"#4A90E2"} loading={isLoading} />
+              </div>
+            ) : !isOtpSent ? (
               <form onSubmit={handleEmailForm}>
                 <input
                   type="text"
@@ -110,7 +148,10 @@ function Login() {
                       type="text"
                       maxLength="1"
                       value={data}
-                      onChange={(e) => handleOtpChange(e.target, index)}
+                      onChange={(e) => handleOtpChange(e, index)}
+                      onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                      onPaste={handleOtpPaste}
+                      ref={(el) => (otpRefs.current[index] = el)}
                       className="w-12 h-12 border border-gray-300 rounded-md pl-4 py-3 focus:outline-none focus:border-violet-600"
                       required
                     />

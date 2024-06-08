@@ -121,7 +121,7 @@ const BookingForm = () => {
                       ? "bg-red-500 cursor-not-allowed"
                       : "bg-green-500 "
                   } text-white ${
-                    selectedSeat === seat.id ? "bg-blue-600" : ""
+                    selectedSeat === seat.id ? "bg-blue-900" : ""
                   }`}
                   onClick={() => !seat.is_booked && handleSeatClick(seat.id)}
                   disabled={seat.is_booked}
